@@ -1,4 +1,4 @@
-# Sistemas Multimídida
+# Sistemas Multimídia
 > Marcelo Bittencourt
 > Osvaldo Neto
 > 
