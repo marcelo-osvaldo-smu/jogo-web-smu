@@ -1,0 +1,11 @@
+
+<script>
+ 
+    ws = new WebSocket('ws://localhost:8082');
+    ws.onopen = () => {
+        console.log('Conectado no servidor!');
+        ws.send('entrar:nome:sala')
+    }
+    
+   
+</script>
