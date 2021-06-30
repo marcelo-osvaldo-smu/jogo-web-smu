@@ -2,10 +2,16 @@
 <script>
  
     ws = new WebSocket('ws://localhost:8082');
-    ws.onopen = () => {
-        console.log('Conectado no servidor!');
-        ws.send('entrar:nome:sala')
-    }
-    
+        
+    // Connection opened
+    ws.addEventListener('open', function (event) {
+        // Pedindo para entrar na sala
+        ws.send('entrar:nomeTeste:salaTeste')
+    });
+
+    // Listen for messages
+    ws.addEventListener('message', function (event) {
+        console.log('[Servidor]', event.data);
+    });
    
 </script>
