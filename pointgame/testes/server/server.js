@@ -6,27 +6,24 @@ const wss = new SocketServer({server});
 const randomToken = require('random-token');
 
 const maxElementosSala = 5
-let user = {}
 let users = []
 const salas = [{nome: "millennium", qtdade: 0},{nome: "destroyer", qtdade: 0},{nome: "x-wing", qtdade: 0}]
 
 
 wss.on('connection', (ws) => {
-    console.log('[Servidor] Um cliente se conectou! ')
-   
+    
     ws.on('message', (msg) => { 
         var req = ""
         req = msg.split(":")
-        console.log("> ", req)
         
         switch(req[0]){
             case 'entrar':
                 if(verifica_sala(req[2])){
+                    let user = {}
                     let verificaNome = verifica_nome(req[1])
-                    user.id = user.token = user.ws = user.sala = ""
+
                     if(verificaNome===200){
-                        //verificacao ok
-                        console.log("entrou", req[1])
+                        // Verificacao ok
                         user.id = req[1]
                         user.token = randomToken(16)
                         user.ws = ws
@@ -35,11 +32,12 @@ wss.on('connection', (ws) => {
                         adiciona_usuario_sala(user.sala)
                         ws.send("ok:"+user.token+":200")
                     } else {
-                        //problemas na verificacao usuario incorreto
+                        // Usuário incorreto
                         ws.send("nok:"+verificaNome)
                         ws.close()
                     }
                 } else {
+                    // Sala cheia
                     ws.send("nok:402")
                     ws.close()
                 } 
@@ -55,10 +53,11 @@ wss.on('connection', (ws) => {
                 console.log("erro")
         }
     
-        // Lista de usuários 
-        for (let i = 0; i < users.length; i++) {
-            console.log(users[i].id)
-        }
+    // Lista de usuários 
+    console.log("> Usuários ativos")
+    for (let i = 0; i < users.length; i++) {
+        console.log(users[i].id)
+    }
 
     })
 
