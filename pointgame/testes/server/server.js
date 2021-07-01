@@ -15,27 +15,25 @@ wss.on('connection', (ws) => {
     console.log('[Servidor] Um cliente se conectou! ')
    
     ws.on('message', (msg) => { 
-        var req = msg.split(":")
-        // console.log("> ", msg)
+        var req = ""
+        req = msg.split(":")
+        console.log("> ", req)
         
-        // Lista de usuários 
-        for (let i = 0; i < users.length; i++) {
-            console.log(users[i].nome)
-        }
-
         switch(req[0]){
             case 'entrar':
                 if(verifica_sala(req[2])){
                     let verificaNome = verifica_nome(req[1])
+                    user.id = user.token = user.ws = user.sala = ""
                     if(verificaNome===200){
                         //verificacao ok
+                        console.log("entrou", req[1])
                         user.id = req[1]
                         user.token = randomToken(16)
                         user.ws = ws
                         user.sala = req[2]
-                        user.ws.send("ok:"+user.token+":200")
                         users.push(user)
                         adiciona_usuario_sala(user.sala)
+                        ws.send("ok:"+user.token+":200")
                     } else {
                         //problemas na verificacao usuario incorreto
                         ws.send("nok:"+verificaNome)
@@ -57,6 +55,11 @@ wss.on('connection', (ws) => {
                 console.log("erro")
         }
     
+        // Lista de usuários 
+        for (let i = 0; i < users.length; i++) {
+            console.log(users[i].id)
+        }
+
     })
 
 })
