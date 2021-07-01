@@ -32,13 +32,9 @@ wss.on('connection', (ws) => {
                         user.ws.send("ok:"+user.token+":200")
                         users.push(user)
                         adiciona_usuario_sala(user)
-                    } else if (verificaNome===401){
+                    } else{
                         //problemas na verificacao usuario incorreto
-                        ws.send("nok:401")
-                        ws.close()
-                    } else {
-                        //usuario duplicado
-                        ws.send("nok:400")
+                        ws.send("nok:"+verificaNome)
                         ws.close()
                     }
                 } else {
