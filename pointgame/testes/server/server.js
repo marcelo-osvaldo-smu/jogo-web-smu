@@ -8,13 +8,16 @@ const randomToken = require('random-token');
 const maxElementosSala = 5
 let user = {}
 let users = []
-const salas = []
+const salas = [{nome: "millennium", qtdade: 0},{nome: "destroyer", qtdade: 0},{nome: "x-wing", qtdade: 0}]
 
 
 wss.on('connection', (ws) => {
     console.log('[Servidor] Um cliente se conectou!')
     
-    ws.on('close', () => { console.log('[Servidor] Um cliente se desconectou!') })
+    ws.on('close', () => {
+
+        console.log('[Servidor] Um cliente se desconectou!' + ws)
+    })
 
     ws.on('message', (msg) => { 
         var req = msg.split(":")
@@ -31,8 +34,8 @@ wss.on('connection', (ws) => {
                         user.sala = req[2]
                         user.ws.send("ok:"+user.token+":200")
                         users.push(user)
-                        adiciona_usuario_sala(user)
-                    } else{
+                        adiciona_usuario_sala(user.sala)
+                    } else {
                         //problemas na verificacao usuario incorreto
                         ws.send("nok:"+verificaNome)
                         ws.close()
@@ -69,11 +72,10 @@ verifica_nome = (nome) => {
 }
 
 // Verifica se a sala existe
-verifica_sala = (salaObj) => {
+verifica_sala = (nomeSala) => {
     // nome da sala errada - (onde vai estar esses nomes???)
-    // sala cheia - (onde vai estar essa informação???)
     const salaFilter = salas.filter( (sala) => {
-        return sala.nome === salaObj
+        return sala.nome === nomeSala
     })
     if(salaFilter.length > 0){
         const salaPop = salaFilter.pop()
@@ -85,21 +87,10 @@ verifica_sala = (salaObj) => {
 }
 
 
-adiciona_usuario_sala = (usuario) => {
-    let salaFilter = salas.filter( (sala) => {
-        return sala.nome === usuario.sala
-    })
-    if(salaFilter.length > 0){
-        salas.forEach( sala => {
-            if(sala.nome === usuario.sala){
-                sala.qtdade ++
-            }
-        })
-    } else {
-        obj = {
-            nome: usuario.sala,
-            qtdade: 1
+adiciona_usuario_sala = (nomeSala) => {
+    salas.forEach((sala) => {
+        if(sala.nome === nomeSala){
+            sala.qtdade ++
         }
-        salas.push(obj)
-    }
+    })
 }
