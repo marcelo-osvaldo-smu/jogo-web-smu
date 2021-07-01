@@ -6,6 +6,8 @@ const wss = new SocketServer({server});
 
 const users_id = []
 const users_ws = []
+const cod = '200'
+
 
 wss.on('connection', (ws) => {
     console.log('[Servidor] Um cliente se conectou!')
@@ -23,11 +25,15 @@ wss.on('connection', (ws) => {
                     id = random_id()
                     users_ws.push(ws)
                     users_id.push(id)
-                    ws.send("ok:"+id+":codigo")
+                    ws.send("ok:"+id+":"+cod)
                 } else {
-                    ws.send("nok:codigo")
+                    ws.send("nok:"+cod)
                 } 
                 break;
+            case 'alive':
+                break
+            case 'fim':
+                break
             default:
                 console.log("erro")
         }
@@ -40,11 +46,15 @@ wss.on('connection', (ws) => {
 entrada = (nome,sala) => {
     if (verifica_nome(nome)){
         if (verifica_sala(sala)) {
+            cod = '200'
             return true
         } else {
+            cod = '402'
             return false
         }
     } else {
+        // cod = '400' NOME DUPLICADO
+        cod = '400' // NOME ERRADO
         return false    
     }
 }
@@ -56,6 +66,8 @@ verifica_nome = (nome) => {
 
 // Verifica se a sala existe
 verifica_sala = (sala) => {
+    // nome da sala errada - (onde vai estar esses nomes???)
+    // sala cheia - (onde vai estar essa informação???)
     return true
 }
 
