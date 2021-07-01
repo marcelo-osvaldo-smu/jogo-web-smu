@@ -10,6 +10,7 @@ let user = {}
 let users = []
 const salas = []
 
+
 wss.on('connection', (ws) => {
     console.log('[Servidor] Um cliente se conectou!')
     
