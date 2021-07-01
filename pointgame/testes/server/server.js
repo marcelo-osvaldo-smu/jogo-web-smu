@@ -12,16 +12,17 @@ const salas = [{nome: "millennium", qtdade: 0},{nome: "destroyer", qtdade: 0},{n
 
 
 wss.on('connection', (ws) => {
-    console.log('[Servidor] Um cliente se conectou!')
-    
-    ws.on('close', () => {
-
-        console.log('[Servidor] Um cliente se desconectou!' + ws)
-    })
-
+    console.log('[Servidor] Um cliente se conectou! ')
+   
     ws.on('message', (msg) => { 
         var req = msg.split(":")
-        console.log(req)
+        // console.log("> ", msg)
+        
+        // Lista de usuários 
+        for (let i = 0; i < users.length; i++) {
+            console.log(users[i].nome)
+        }
+
         switch(req[0]){
             case 'entrar':
                 if(verifica_sala(req[2])){
@@ -48,6 +49,9 @@ wss.on('connection', (ws) => {
             case 'alive':
                 break
             case 'fim':
+                exclui_usuario(req[1])
+                ws.send("ok:202")
+                ws.close()
                 break
             default:
                 console.log("erro")
@@ -71,9 +75,9 @@ verifica_nome = (nome) => {
     return 200
 }
 
-// Verifica se a sala existe
+// Verifica se a sala está disponível 
+// OBS: Como a sala é fixa, não precisamos verificar se ela existe
 verifica_sala = (nomeSala) => {
-    // nome da sala errada - (onde vai estar esses nomes???)
     const salaFilter = salas.filter( (sala) => {
         return sala.nome === nomeSala
     })
@@ -86,11 +90,33 @@ verifica_sala = (nomeSala) => {
     return true
 }
 
-
+// Alterada quantidade usuários da sala
 adiciona_usuario_sala = (nomeSala) => {
     salas.forEach((sala) => {
         if(sala.nome === nomeSala){
-            sala.qtdade ++
+            ++sala.qtdade 
         }
     })
+}
+
+// Exclui o usuário em caso de desconexão
+exclui_usuario = (token) => {
+    
+    // Procurando usuário
+    userFilter = users.filter((user) => {
+        return user.token === token
+    })
+
+    // Alterando jogadores na sala
+    salas.forEach((sala) => {
+        if(sala.nome === userFilter.sala){
+            --sala.qtdade 
+        }
+    })
+
+    // Removendo usuário
+    var index = users.findIndex( user => user.token === token)
+    users.splice(index,1) 
+
+    return true
 }
