@@ -22,7 +22,7 @@ wss.on('connection', (ws) => {
                 if (entrada(req[1],req[2])) {
                     id = random_id()
                     users_ws.push(ws)
-                    users_id.push()
+                    users_id.push(id)
                     ws.send("ok:"+id+":codigo")
                 } else {
                     ws.send("nok:codigo")
