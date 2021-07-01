@@ -28,6 +28,7 @@ wss.on('connection', (ws) => {
                     ws.send("ok:"+id+":"+cod)
                 } else {
                     ws.send("nok:"+cod)
+                    ws.close()
                 } 
                 break;
             case 'alive':
