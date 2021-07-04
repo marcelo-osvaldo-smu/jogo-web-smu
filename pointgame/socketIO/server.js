@@ -17,7 +17,7 @@ app.use('/', (req, res) => {
 // Lista de usários ativos
 let usuarios = []
 // Lista de salas disponíveis
-const salas = [{nome: "millennium", qtd: 0, max: 5},{nome: "destroyer", qtd: 0, max:5},{nome: "x-wing", qtd: 0, max: 5}]
+var salas = [{nome: "millennium", qtd: 0, max: 3},{nome: "destroyer", qtd: 0, max: 5},{nome: "x-wing", qtd: 0, max: 5}]
 
 io.on('connection', socket =>{
     // console.log(`Socket conectado: ${socket.id}`)
@@ -82,10 +82,12 @@ verifica_nome = (nome) => {
 
 /* Verifica se a sala está disponível */
 verifica_sala = (nomeSala) => {
-    const salaFilter = salas.filter( (sala) => {
+    console.log(nomeSala)
+    salaFilter = salas.filter( (sala) => {
         return sala.nome === nomeSala
     })
-    if(salaFilter.qtd >= salaFilter.max){
+    
+    if(salaFilter[0].qtd >= salaFilter[0].max){
         return false
     }
     return true
@@ -104,13 +106,13 @@ adiciona_usuario_sala = (nomeSala) => {
 exclui_usuario = (idSocket) => {
     
     // Procurando usuário
-    clienteFilter = usuarios.filter((cliente) => {
+    const clienteFilter = usuarios.filter((cliente) => {
         return cliente.idSocket === idSocket
     })
 
     // Alterando jogadores na sala
     salas.forEach((sala) => {
-        if(sala.nome === clienteFilter.sala){
+        if(sala.nome === clienteFilter[0].sala){
             --sala.qtd 
         }
     })
