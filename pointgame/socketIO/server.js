@@ -20,14 +20,14 @@ let usuarios = []
 const salas = [{nome: "millennium", qtd: 0, max: 5},{nome: "destroyer", qtd: 0, max:5},{nome: "x-wing", qtd: 0, max: 5}]
 
 io.on('connection', socket =>{
-    console.log(`Socket conectado: ${socket.id}`)
+    // console.log(`Socket conectado: ${socket.id}`)
 
     // Processo de autenticação
-    socket.on('autenticacao', data =>{
+    socket.on('autenticacaoServidor', data =>{
         var req = data.split(":")
         var nome = req[1]
         var sala = req[2]
-
+        
         if(verifica_sala(sala)){
             let cliente = {}
             let verificaNome = verifica_nome(nome)
@@ -35,31 +35,92 @@ io.on('connection', socket =>{
             if(verificaNome===200){
                 // Verificacao ok
                 cliente.nome = nome
-                cliente.token = socket.id
+                cliente.idSocket = socket.id
                 cliente.sala = sala
                 usuarios.push(cliente)
-                adiciona_usuario_sala(user.sala)
-                ws.send("ok:"+user.token+":200")
+                adiciona_usuario_sala(cliente.sala)
+                socket.emit('autenticacaoCliente',"ok:"+cliente.idSocket+":200")
             } else {
                 // Usuário incorreto
-                ws.send("nok:"+verificaNome)
-                ws.close()
+                socket.emit('autenticacaoCliente',"nok:"+verificaNome)
             }
         } else {
             // Sala cheia
-            ws.send("nok:402")
-            ws.close()
+            socket.emit('autenticacaoCliente',"nok:402")
         } 
 
-
-
+        // Lista de usuários ativos
+        console.log("> Usuários ativos")
+        for (let i = 0; i < usuarios.length; i++) {
+            console.log(usuarios[i].nome)
+        }
     })
 
-
-
+    // Processo de desconexão
+    socket.on('disconnectServidor', data => {
+        var req = data.split(":")
+        socket.emit('disconnectCliente',"ok:202")
+        exclui_usuario(req[1])
+    })
 
 
 })
 
-// Escutando na porta 3000
+/* Verifica se o nome do cliente é válido */
+verifica_nome = (nome) => {
+    if(nome.includes(" ") || (nome.includes(":"))){
+        return 401
+    }
+    userFilter = usuarios.filter((user) => {
+        return user.nome === nome
+    })
+    if(userFilter.length > 0){
+        return 400
+    }
+    return 200
+}
+
+/* Verifica se a sala está disponível */
+verifica_sala = (nomeSala) => {
+    const salaFilter = salas.filter( (sala) => {
+        return sala.nome === nomeSala
+    })
+    if(salaFilter.qtd >= salaFilter.max){
+        return false
+    }
+    return true
+}
+
+/* Alterando quantidade usuários da sala */
+adiciona_usuario_sala = (nomeSala) => {
+    salas.forEach((sala) => {
+        if(sala.nome === nomeSala){
+            ++sala.qtd 
+        }
+    })
+}
+
+/* Exclui o usuário em caso de desconexão */
+exclui_usuario = (idSocket) => {
+    
+    // Procurando usuário
+    clienteFilter = usuarios.filter((cliente) => {
+        return cliente.idSocket === idSocket
+    })
+
+    // Alterando jogadores na sala
+    salas.forEach((sala) => {
+        if(sala.nome === clienteFilter.sala){
+            --sala.qtd 
+        }
+    })
+
+    // Removendo usuário
+    var index = usuarios.findIndex( cliente => cliente.idSocket === idSocket)
+    usuarios.splice(index,1) 
+
+    return true
+}
+
+/* Escutando na porta 3000 */
 server.listen(3000);

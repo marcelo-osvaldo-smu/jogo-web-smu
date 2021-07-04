@@ -92,7 +92,7 @@ verifica_sala = (nomeSala) => {
     return true
 }
 
-// Alterada quantidade usuários da sala
+// Alterando quantidade usuários da sala
 adiciona_usuario_sala = (nomeSala) => {
     salas.forEach((sala) => {
         if(sala.nome === nomeSala){

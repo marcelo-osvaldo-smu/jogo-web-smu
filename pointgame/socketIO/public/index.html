@@ -11,15 +11,34 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
+    <button id="sair" title="Sair" style="width: 100%; height: 30px;">Sair</button>
     <script type="text/javascript">
 
         var socket = io('http://localhost:3000');
-        var token = ""
+        var idSocket = ""
+        const sairBtn = document.querySelector('#sair');
 
-        // Início da conexão
+        // Início da conexão e enviando pedido autenticação
         socket.on('connect', function(){ 
-            socket.emit('autenticacao', "entrar:batman:millenium")
+            socket.emit('autenticacaoServidor', "entrar:batman:millenium")
+        })
+
+        // Recebendo resposta de autenticação
+        socket.on('autenticacaoCliente', data => {
+            var req = data.split(":")
+            idSocket = req[1]
+            console.log("id: "+idSocket)
+        })
+
+        // Enviando mensagem de encerramento de conexão
+        sairBtn.onclick = function() {
+            socket.emit('disconnectServidor',"fim:"+idSocket)
+        }
+
+        // Recebendo resposta de desconexão
+        socket.on('disconnectCliente', data => {
+            console.log(data)
+            socket.disconnect()
         })
 
     </script>
