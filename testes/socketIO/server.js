@@ -82,7 +82,7 @@ verifica_nome = (nome) => {
 
 /* Verifica se a sala está disponível */
 verifica_sala = (nomeSala) => {
-    console.log(nomeSala)
+
     salaFilter = salas.filter( (sala) => {
         return sala.nome === nomeSala
     })
