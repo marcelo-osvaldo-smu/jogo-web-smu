@@ -1,42 +1,78 @@
 var socket = io('http://localhost:3000');
 var idSocket = ""
 
+var usuario = {}
 var nome = ""
 var sala = ""
 var primeiro = false
-var usuarios = ""
+var lista_usuarios = {}
 
 // Início da conexão e enviando pedido autenticação
 socket.on('connect', function(){ 
     nome = window.prompt('Qual o seu nome?');
     sala = window.prompt('Qual a sala?');
-    var usuario = {
-        nome: nome,
-        sala: sala,
-    }
-    var a = "entrar:"+usuario.nome+":"+usuario.sala
+    var a = "entrar:"+nome+":"+sala
     socket.emit('autenticacaoServidor', a)
 })
 
 // Recebendo resposta de autenticação
 socket.on('autenticacaoCliente', data => {
-    var req = data.split(":")
-    
-    // Verificando resposta do servidor
-    if (req[0]==="ok") {
-        idSocket = req[1]
-        console.log(req[3])
+    var user = JSON.parse(data)
+    if (user.codigo=="200") {
+        usuario = user
+
+        // Não é o primeiro usuário
+        if (usuario.posicao!=1) {
+            var idSocketPrimeiro = 0
+            console.log(lista_usuarios)
+            // Pocurando o primeiro candidato
+            lista_usuarios.forEach((p) => {
+                if (p.posicao==1) {
+                    idSocketPrimeiro = p.idSocket
+                }    
+            })
+
+            navigator.mediaDevices
+                .getUserMedia({ video: false, audio: true })
+                .then((stream) => {
+                midias = stream;
+                localConnection = new RTCPeerConnection(ice_servers);
+                midias
+                    .getTracks()
+                    .forEach((track) => localConnection.addTrack(track, midias));
+                localConnection.onicecandidate = ({ candidate }) => {
+                    candidate &&
+                    socket.emit("candidate", idSocketPrimeiro, candidate);
+                };
+                console.log(midias);
+                localConnection.ontrack = ({ streams: [midias] }) => {
+                    audio.srcObject = midias;
+                };
+                localConnection
+                    .createOffer()
+                    .then((offer) => localConnection.setLocalDescription(offer))
+                    .then(() => {
+                    socket.emit(
+                        "offer",
+                        jogadores.primeiro,
+                        localConnection.localDescription
+                    );
+                    });
+                })
+                .catch((error) => console.log(error));
+        }
+
+
     } else {
-        console.log("Erro "+req[1])
+        console.log(user.codigo)
         socket.disconnect()
     }
-    
 })
 
 // Recebendo lista de jogadores ativos
 socket.on('atualizarUsers', data => {
     var i = 0
-    this.usuarios = data
+    lista_usuarios = data
     $('#users').empty().trigger("change");
     data.forEach((jogador) => {
         if (jogador.nome!=nome) {
@@ -52,6 +88,37 @@ socket.on('disconnectCliente', data => {
     socket.disconnect()
 })
 
+// Processo offer SDP
+this.socket.on("offer", (socketId, description) => {
+    remoteConnection = new RTCPeerConnection(ice_servers);
+    midias
+      .getTracks()
+      .forEach((track) => remoteConnection.addTrack(track, midias));
+    remoteConnection.onicecandidate = ({ candidate }) => {
+      candidate && socket.emit("candidate", socketId, candidate);
+    };
+    remoteConnection.ontrack = ({ streams: [midias] }) => {
+      audio.srcObject = midias;
+    };
+    remoteConnection
+      .setRemoteDescription(description)
+      .then(() => remoteConnection.createAnswer())
+      .then((answer) => remoteConnection.setLocalDescription(answer))
+      .then(() => {
+        socket.emit("answer", socketId, remoteConnection.localDescription);
+      });
+});
+
+// Processo answer SDP  
+socket.on("answer", (description) => {
+    localConnection.setRemoteDescription(description);
+});
+
+// Processo candidate SDP  
+socket.on("candidate", (candidate) => {
+    const conn = localConnection || remoteConnection;
+    conn.addIceCandidate(new RTCIceCandidate(candidate));
+});
 
 var cenario = window.document.getElementById('cenario');
 var ctx = cenario.getContext('2d');

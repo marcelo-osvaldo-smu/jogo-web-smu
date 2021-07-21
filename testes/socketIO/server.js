@@ -36,37 +36,40 @@ io.on('connection', socket =>{
                 cliente.nome = nome
                 cliente.idSocket = socket.id
                 cliente.sala = sala
+                cliente.codigo = verificaNome
 
-                // Verificando se é o primeiro jogador na sala 
+                // Posição do jogador na sala (primeiro, segundo, terceiro...) 
                 salas.forEach((s) => {
                     if(s.nome === sala){
-                        if (s.qtd == 0) {
-                            cliente.primeiro = true
-                        } else {
-                            cliente.primeiro = false
-                        }
+                        cliente.posicao = s.qtd+1
                     }
                 })
                 usuarios.push(cliente)
                 adiciona_usuario_sala(cliente.sala)
 
-                // Diferente tipo de resposta para caso seja ou não o primeiro jogador    
-                if (cliente.primeiro) {
-                    socket.emit('autenticacaoCliente',"ok:"+cliente.idSocket+":200:primeiro")
-                } else {
-                    socket.emit('autenticacaoCliente',"ok:"+cliente.idSocket+":200:notprimeiro")
-                }  
-
                 // Broadcast de lista de novos usuários (FALTA SELECIONAR A SALA - FUTURAMENTE NÃO VAI SER BROADCAST)
                 io.sockets.emit('atualizarUsers', usuarios);
 
+                // Finalizando registro cliente
+                socket.emit('autenticacaoCliente',JSON.stringify(cliente)) 
+
             } else {
                 // Usuário incorreto
-                socket.emit('autenticacaoCliente',"nok:"+verificaNome)
+                cliente.nome = ""
+                cliente.idSocket = ""
+                cliente.sala = ""
+                cliente.codigo = verificaNome
+                cliente.posicao = ""
+                socket.emit('autenticacaoCliente',JSON.stringify(cliente))
             }
         } else {
             // Sala cheia
-            socket.emit('autenticacaoCliente',"nok:402")
+            cliente.nome = ""
+            cliente.idSocket = ""
+            cliente.sala = ""
+            cliente.codigo = "402"
+            cliente.posicao = ""
+            socket.emit('autenticacaoCliente',JSON.stringify(cliente))
         } 
     })
 
@@ -83,6 +86,21 @@ io.on('connection', socket =>{
         // Envia para todos a lista de nomes atualizada
         io.sockets.emit('atualizarUsers', usuarios);
     })
+
+    // Sinalização de áudio: oferta
+    socket.on("offer", (socketId, description) => {
+        socket.to(socketId).emit("offer", socket.id, description);
+    });
+
+    // Sinalização de áudio: atendimento da oferta
+    socket.on("answer", (socketId, description) => {
+        socket.to(socketId).emit("answer", description);
+    });
+
+    // Sinalização de áudio: envio dos candidatos de caminho
+    socket.on("candidate", (socketId, signal) => {
+        socket.to(socketId).emit("candidate", signal);
+    });
 
 })
 
