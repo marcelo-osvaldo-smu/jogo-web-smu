@@ -17,3 +17,19 @@ p {
     right: 0;
     margin:auto;
 }
+#users {
+    position: absolute;
+    top: 170px; 
+    left: 400px;
+    width: 170px;
+    font-size: 12pt;
+    color: green;
+  }
+
+#titleUsers {
+    position: absolute;
+    top: 125px; 
+    left: 435px;
+    font-size: 12pt;
+    color: green;
+  }  

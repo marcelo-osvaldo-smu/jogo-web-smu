@@ -1,6 +1,9 @@
 var socket = io('http://localhost:3000');
 var idSocket = ""
 
+var nome = ""
+var sala = ""
+
 // Início da conexão e enviando pedido autenticação
 socket.on('connect', function(){ 
     nome = window.prompt('Qual o seu nome?');
@@ -12,7 +15,6 @@ socket.on('connect', function(){
     var a = "entrar:"+usuario.nome+":"+usuario.sala
     console.log("> Enviando pedido de registro: "+a)
     socket.emit('autenticacaoServidor', a)
-    //socket.emit('autenticacaoServidor', "entrar:charada:millennium")
 })
 
 // Recebendo resposta de autenticação
@@ -28,6 +30,18 @@ socket.on('autenticacaoCliente', data => {
         socket.disconnect()
     }
     
+})
+
+// Recebendo lista de jogadores ativos
+socket.on('atualizarUsers', data => {
+    var i = 0
+    $('#users').empty().trigger("change");
+    data.forEach((jogador) => {
+        if (jogador.nome!=nome) {
+            $('#users').append(new Option(jogador.nome, i));
+            i++;
+        }    
+    })
 })
 
 // Recebendo resposta de desconexão

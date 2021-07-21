@@ -17,7 +17,7 @@ app.use('/', (req, res) => {
 // Lista de usários ativos
 let usuarios = []
 // Lista de salas disponíveis
-var salas = [{nome: "millennium", qtd: 0, max: 3},{nome: "destroyer", qtd: 0, max: 5},{nome: "x-wing", qtd: 0, max: 5}]
+var salas = [{nome: "a", qtd: 0, max: 3},{nome: "destroyer", qtd: 0, max: 5},{nome: "x-wing", qtd: 0, max: 5}]
 
 io.on('connection', socket =>{
     // console.log(`Socket conectado: ${socket.id}`)
@@ -40,6 +40,7 @@ io.on('connection', socket =>{
                 usuarios.push(cliente)
                 adiciona_usuario_sala(cliente.sala)
                 socket.emit('autenticacaoCliente',"ok:"+cliente.idSocket+":200")
+                io.sockets.emit('atualizarUsers', usuarios);
             } else {
                 // Usuário incorreto
                 socket.emit('autenticacaoCliente',"nok:"+verificaNome)
@@ -48,12 +49,6 @@ io.on('connection', socket =>{
             // Sala cheia
             socket.emit('autenticacaoCliente',"nok:402")
         } 
-
-        // Lista de usuários ativos
-        console.log("> Usuários ativos")
-        for (let i = 0; i < usuarios.length; i++) {
-            console.log(usuarios[i].nome)
-        }
     })
 
     // Processo de desconexão
@@ -63,6 +58,12 @@ io.on('connection', socket =>{
         exclui_usuario(req[1])
     })
 
+     // Socket desconectado forçado
+     socket.on('disconnect', () => {
+        exclui_usuario(socket.id)
+        // Envia para todos a lista de nomes atualizada
+        io.sockets.emit('atualizarUsers', usuarios);
+    })
 
 })
 
