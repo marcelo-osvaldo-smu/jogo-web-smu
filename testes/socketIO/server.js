@@ -20,7 +20,6 @@ let usuarios = []
 var salas = [{nome: "a", qtd: 0, max: 3},{nome: "destroyer", qtd: 0, max: 5},{nome: "x-wing", qtd: 0, max: 5}]
 
 io.on('connection', socket =>{
-    // console.log(`Socket conectado: ${socket.id}`)
 
     // Processo de autenticação
     socket.on('autenticacaoServidor', data =>{
@@ -37,10 +36,30 @@ io.on('connection', socket =>{
                 cliente.nome = nome
                 cliente.idSocket = socket.id
                 cliente.sala = sala
+
+                // Verificando se é o primeiro jogador na sala 
+                salas.forEach((s) => {
+                    if(s.nome === sala){
+                        if (s.qtd == 0) {
+                            cliente.primeiro = true
+                        } else {
+                            cliente.primeiro = false
+                        }
+                    }
+                })
                 usuarios.push(cliente)
                 adiciona_usuario_sala(cliente.sala)
-                socket.emit('autenticacaoCliente',"ok:"+cliente.idSocket+":200")
+
+                // Diferente tipo de resposta para caso seja ou não o primeiro jogador    
+                if (cliente.primeiro) {
+                    socket.emit('autenticacaoCliente',"ok:"+cliente.idSocket+":200:primeiro")
+                } else {
+                    socket.emit('autenticacaoCliente',"ok:"+cliente.idSocket+":200:notprimeiro")
+                }  
+
+                // Broadcast de lista de novos usuários (FALTA SELECIONAR A SALA - FUTURAMENTE NÃO VAI SER BROADCAST)
                 io.sockets.emit('atualizarUsers', usuarios);
+
             } else {
                 // Usuário incorreto
                 socket.emit('autenticacaoCliente',"nok:"+verificaNome)
