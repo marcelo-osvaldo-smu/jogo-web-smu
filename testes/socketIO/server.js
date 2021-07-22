@@ -11,27 +11,27 @@ const io = require('socket.io')(server);
 //app.set('view engine', 'html');
 
 app.use('/', (req, res) => {
-   res.send("Hello!")
+    res.send("Hello!")
 })
 
 // Lista de usários ativos
 let usuarios = []
 // Lista de salas disponíveis
-var salas = [{nome: "a", qtd: 0, max: 3},{nome: "destroyer", qtd: 0, max: 5},{nome: "x-wing", qtd: 0, max: 5}]
+var salas = [{ nome: "a", qtd: 0, max: 3 }, { nome: "destroyer", qtd: 0, max: 5 }, { nome: "x-wing", qtd: 0, max: 5 }]
 
-io.on('connection', socket =>{
+io.on('connection', socket => {
 
     // Processo de autenticação
-    socket.on('autenticacaoServidor', data =>{
+    socket.on('autenticacaoServidor', data => {
         var req = data.split(":")
         var nome = req[1]
         var sala = req[2]
-        
-        if(verifica_sala(sala)){
+
+        if (verifica_sala(sala)) {
             let cliente = {}
             let verificaNome = verifica_nome(nome)
 
-            if(verificaNome===200){
+            if (verificaNome === 200) {
                 // Verificacao ok
                 cliente.nome = nome
                 cliente.idSocket = socket.id
@@ -40,8 +40,8 @@ io.on('connection', socket =>{
 
                 // Posição do jogador na sala (primeiro, segundo, terceiro...) 
                 salas.forEach((s) => {
-                    if(s.nome === sala){
-                        cliente.posicao = s.qtd+1
+                    if (s.nome === sala) {
+                        cliente.posicao = s.qtd + 1
                     }
                 })
                 usuarios.push(cliente)
@@ -51,7 +51,7 @@ io.on('connection', socket =>{
                 io.sockets.emit('atualizarUsers', usuarios);
 
                 // Finalizando registro cliente
-                socket.emit('autenticacaoCliente',JSON.stringify(cliente)) 
+                socket.emit('autenticacaoCliente', JSON.stringify(cliente))
 
             } else {
                 // Usuário incorreto
@@ -60,7 +60,7 @@ io.on('connection', socket =>{
                 cliente.sala = ""
                 cliente.codigo = verificaNome
                 cliente.posicao = ""
-                socket.emit('autenticacaoCliente',JSON.stringify(cliente))
+                socket.emit('autenticacaoCliente', JSON.stringify(cliente))
             }
         } else {
             // Sala cheia
@@ -69,19 +69,19 @@ io.on('connection', socket =>{
             cliente.sala = ""
             cliente.codigo = "402"
             cliente.posicao = ""
-            socket.emit('autenticacaoCliente',JSON.stringify(cliente))
-        } 
+            socket.emit('autenticacaoCliente', JSON.stringify(cliente))
+        }
     })
 
     // Processo de desconexão
     socket.on('disconnectServidor', data => {
         var req = data.split(":")
-        socket.emit('disconnectCliente',"ok:202")
+        socket.emit('disconnectCliente', "ok:202")
         exclui_usuario(req[1])
     })
 
-     // Socket desconectado forçado
-     socket.on('disconnect', () => {
+    // Socket desconectado forçado
+    socket.on('disconnect', () => {
         exclui_usuario(socket.id)
         // Envia para todos a lista de nomes atualizada
         io.sockets.emit('atualizarUsers', usuarios);
@@ -106,13 +106,13 @@ io.on('connection', socket =>{
 
 /* Verifica se o nome do cliente é válido */
 verifica_nome = (nome) => {
-    if(nome.includes(" ") || (nome.includes(":"))){
+    if (nome.includes(" ") || (nome.includes(":"))) {
         return 401
     }
     userFilter = usuarios.filter((user) => {
         return user.nome === nome
     })
-    if(userFilter.length > 0){
+    if (userFilter.length > 0) {
         return 400
     }
     return 200
@@ -121,11 +121,11 @@ verifica_nome = (nome) => {
 /* Verifica se a sala está disponível */
 verifica_sala = (nomeSala) => {
 
-    salaFilter = salas.filter( (sala) => {
+    salaFilter = salas.filter((sala) => {
         return sala.nome === nomeSala
     })
-    
-    if(salaFilter[0].qtd >= salaFilter[0].max){
+
+    if (salaFilter[0].qtd >= salaFilter[0].max) {
         return false
     }
     return true
@@ -134,30 +134,32 @@ verifica_sala = (nomeSala) => {
 /* Alterando quantidade usuários da sala */
 adiciona_usuario_sala = (nomeSala) => {
     salas.forEach((sala) => {
-        if(sala.nome === nomeSala){
-            ++sala.qtd 
+        if (sala.nome === nomeSala) {
+            ++sala.qtd
         }
     })
 }
 
 /* Exclui o usuário em caso de desconexão */
 exclui_usuario = (idSocket) => {
-    
+
     // Procurando usuário
     const clienteFilter = usuarios.filter((cliente) => {
         return cliente.idSocket === idSocket
     })
 
-    // Alterando jogadores na sala
-    salas.forEach((sala) => {
-        if(sala.nome === clienteFilter[0].sala){
-            --sala.qtd 
-        }
-    })
+    if (clienteFilter.length > 0) {
+        // Alterando jogadores na sala
+        salas.forEach((sala) => {
+            if (sala.nome === clienteFilter[0].sala) {
+                --sala.qtd
+            }
+        })
 
-    // Removendo usuário
-    var index = usuarios.findIndex( cliente => cliente.idSocket === idSocket)
-    usuarios.splice(index,1) 
+        // Removendo usuário
+        var index = usuarios.findIndex(cliente => cliente.idSocket === idSocket)
+        usuarios.splice(index, 1)
+    }
 
     return true
 }

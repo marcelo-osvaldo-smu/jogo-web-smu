@@ -44,6 +44,7 @@ socket.on('autenticacaoCliente', data => {
                     candidate &&
                     socket.emit("candidate", idSocketPrimeiro, candidate);
                 };
+                console.log("teste")
                 console.log(midias);
                 localConnection.ontrack = ({ streams: [midias] }) => {
                     audio.srcObject = midias;
