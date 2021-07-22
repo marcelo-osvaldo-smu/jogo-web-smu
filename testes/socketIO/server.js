@@ -17,7 +17,7 @@ app.use('/', (req, res) => {
 // Lista de usários ativos
 let usuarios = []
 // Lista de salas disponíveis
-var salas = [{ nome: "a", qtd: 0, max: 3 }, { nome: "destroyer", qtd: 0, max: 5 }, { nome: "x-wing", qtd: 0, max: 5 }]
+var salas = [{ nome: "a", qtd: 0, max: 3 }, { nome: "b", qtd: 0, max: 5 }, { nome: "c", qtd: 0, max: 5 }]
 
 io.on('connection', socket => {
 
@@ -47,7 +47,7 @@ io.on('connection', socket => {
                 usuarios.push(cliente)
                 adiciona_usuario_sala(cliente.sala)
 
-                // Broadcast de lista de novos usuários (FALTA SELECIONAR A SALA - FUTURAMENTE NÃO VAI SER BROADCAST)
+                // Broadcast de lista de novos usuários 
                 io.sockets.emit('atualizarUsers', usuarios);
 
                 // Finalizando registro cliente
@@ -83,6 +83,8 @@ io.on('connection', socket => {
     // Socket desconectado forçado
     socket.on('disconnect', () => {
         exclui_usuario(socket.id)
+        // Aqui vamos alterar a posição de cada jogador quando alguém sai da sala
+
         // Envia para todos a lista de nomes atualizada
         io.sockets.emit('atualizarUsers', usuarios);
     })

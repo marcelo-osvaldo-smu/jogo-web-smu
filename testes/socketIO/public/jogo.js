@@ -76,9 +76,11 @@ socket.on('atualizarUsers', data => {
     lista_usuarios = data
     $('#users').empty().trigger("change");
     data.forEach((jogador) => {
-        if (jogador.nome!=nome) {
-            $('#users').append(new Option(jogador.nome, i));
-            i++;
+        if (jogador.sala==sala) {
+            if (jogador.nome!=nome) {
+                $('#users').append(new Option(jogador.nome, i));
+                i++;
+            }
         }    
     })
 })
