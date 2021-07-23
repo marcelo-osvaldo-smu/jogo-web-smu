@@ -97,7 +97,7 @@ socket.on('disconnectCliente', data => {
 })
 
 // Processo offer SDP
-this.socket.on("offer", (socketId, description) => {
+socket.on("offer", (socketId, description) => {
     remoteConnection = new RTCPeerConnection(ice_servers);
     midias
         .getTracks()
