@@ -27,6 +27,13 @@ socket.on('autenticacaoCliente', data => {
     if (user.codigo == "200") {
         usuario = user
 
+        navigator.mediaDevices
+        .getUserMedia({ video: false, audio: true })
+        .then((stream) => {
+          midias = stream;
+        })
+        .catch((error) => console.log(error));
+
         // Não é o primeiro usuário
         if (usuario.posicao != 1) {
             var idSocketPrimeiro = 0
@@ -77,6 +84,7 @@ socket.on('autenticacaoCliente', data => {
 
 // Recebendo lista de jogadores ativos
 socket.on('atualizarUsers', data => {
+    console.log(data)
     var i = 0
     lista_usuarios = data
     $('#users').empty().trigger("change");

@@ -15,7 +15,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 //})
 
 // Lista de usários ativos
-let usuarios = []
+var usuarios = []
 // Lista de salas disponíveis
 var salas = [{ nome: "a", qtd: 0, max: 3 }, { nome: "b", qtd: 0, max: 5 }, { nome: "c", qtd: 0, max: 5 }]
 
@@ -48,7 +48,7 @@ io.on('connection', socket => {
                 adiciona_usuario_sala(cliente.sala)
 
                 // Broadcast de lista de novos usuários 
-                io.sockets.emit('atualizarUsers', usuarios);
+                io.emit('atualizarUsers', usuarios);
 
                 // Finalizando registro cliente
                 socket.emit('autenticacaoCliente', JSON.stringify(cliente))
@@ -127,9 +127,12 @@ verifica_sala = (nomeSala) => {
         return sala.nome === nomeSala
     })
 
-    if (salaFilter[0].qtd >= salaFilter[0].max) {
-        return false
+    if (salaFilter.length>0) {
+        if (salaFilter[0].qtd >= salaFilter[0].max) {
+            return false
+        }
     }
+
     return true
 }
 
