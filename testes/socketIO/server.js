@@ -20,7 +20,8 @@ var usuarios = []
 var salas = [{ nome: "a", qtd: 0, max: 3 }, { nome: "b", qtd: 0, max: 5 }, { nome: "c", qtd: 0, max: 5 }]
 
 io.on('connection', socket => {
-
+    console.log("novo cliente")
+    socket.emit('salasDisponiveis',JSON.stringify(salas))
     // Processo de autenticação
     socket.on('autenticacaoServidor', data => {
         var req = data.split(":")
@@ -153,17 +154,31 @@ exclui_usuario = (idSocket) => {
         return cliente.idSocket === idSocket
     })
 
+    var posicaoAntigoJogador = clienteFilter[0].posicao
+    var salaAntigoJogador = clienteFilter[0].sala
+
     if (clienteFilter.length > 0) {
-        // Alterando jogadores na sala
+        // Alterando quantidade de jogadores na sala
         salas.forEach((sala) => {
-            if (sala.nome === clienteFilter[0].sala) {
+            if (sala.nome === salaAntigoJogador) {
                 --sala.qtd
+                objetoSala = sala
             }
         })
 
         // Removendo usuário
         var index = usuarios.findIndex(cliente => cliente.idSocket === idSocket)
         usuarios.splice(index, 1)
+
+        // Alterando posição dos jogadores na sala
+        usuarios.forEach((u) => {
+            if (u.sala === salaAntigoJogador) {
+                if (u.posicao > posicaoAntigoJogador) { // Apenas posições acimas são alteradas
+                    --u.posicao
+                }
+            }
+        })
+        
     }
 
     return true

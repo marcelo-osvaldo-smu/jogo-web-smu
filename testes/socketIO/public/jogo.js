@@ -15,8 +15,20 @@ var midias;
 
 // Início da conexão e enviando pedido autenticação
 socket.on('connect', function () {
+    //nome = window.prompt('Qual o seu nome?');
+    //sala = window.prompt('Qual a sala?');
+    //var a = "entrar:" + nome + ":" + sala
+    //socket.emit('autenticacaoServidor', a)
+})
+
+// Rebendo salas disponíveis
+socket.on('salasDisponiveis', data => {
+    var salasJSON = JSON.parse(data)
     nome = window.prompt('Qual o seu nome?');
-    sala = window.prompt('Qual a sala?');
+    sala = window.prompt('Salas disponíveis:\n'+'Nome: '+salasJSON[0].nome+', Jogadores: '+salasJSON[0].qtd+'/'+salasJSON[0].max
+                        +'\nNome: '+salasJSON[1].nome+', Jogadores: '+salasJSON[1].qtd+'/'+salasJSON[1].max
+                        +'\nNome: '+salasJSON[2].nome+', Jogadores: '+salasJSON[2].qtd+'/'+salasJSON[2].max
+                        +'\n\n Escolha sua sala digitando o nome dela:\n\n');
     var a = "entrar:" + nome + ":" + sala
     socket.emit('autenticacaoServidor', a)
 })
@@ -37,7 +49,7 @@ socket.on('autenticacaoCliente', data => {
         // Não é o primeiro usuário
         if (usuario.posicao != 1) {
             var idSocketPrimeiro = 0
-            console.log(lista_usuarios)
+            
             // Pocurando o primeiro candidato
             lista_usuarios.forEach((p) => {
                 if (p.posicao == 1) {
