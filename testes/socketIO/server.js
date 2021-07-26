@@ -20,7 +20,7 @@ var usuarios = []
 var salas = [{ nome: "a", qtd: 0, max: 3 }, { nome: "b", qtd: 0, max: 5 }, { nome: "c", qtd: 0, max: 5 }]
 
 io.on('connection', socket => {
-    console.log("novo cliente")
+    //console.log("novo cliente")
     socket.emit('salasDisponiveis',JSON.stringify(salas))
     // Processo de autenticação
     socket.on('autenticacaoServidor', data => {
@@ -104,6 +104,8 @@ io.on('connection', socket => {
     socket.on("candidate", (socketId, signal) => {
         socket.to(socketId).emit("candidate", signal);
     });
+
+    // Repassa posição para todos os jogadores de uma mas sala
 
 })
 
