@@ -18,6 +18,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 var usuarios = []
 // Lista de salas disponíveis
 var salas = [{ nome: "a", qtd: 0, max: 3 }, { nome: "b", qtd: 0, max: 5 }, { nome: "c", qtd: 0, max: 5 }]
+// Quantidade de peça tabuleiro (gambiarra)
+var qtd_peca = 30;
 
 io.on('connection', socket => {
     //console.log("novo cliente")
@@ -38,6 +40,8 @@ io.on('connection', socket => {
                 cliente.idSocket = socket.id
                 cliente.sala = sala
                 cliente.codigo = verificaNome
+                cliente.px = Math.floor(Math.random() * (qtd_peca - 1)) + 1; // Posição x do jogador
+                cliente.py = Math.floor(Math.random() * (qtd_peca - 1)) + 1; // Posição y do jogador
 
                 // Posição do jogador na sala (primeiro, segundo, terceiro...) 
                 salas.forEach((s) => {
@@ -106,6 +110,16 @@ io.on('connection', socket => {
     });
 
     // Repassa posição para todos os jogadores de uma mas sala
+    socket.on("repassaNovaPosicaoServidor", (jogador) => {
+        var jog = JSON.parse(jogador)
+        console.log(jog)
+        io.sockets.emit('posicaoOutroJogador', jogador);
+        //for (let i = 0; i < usuarios.length; i++) {
+        //    if (jog.sala == usuarios[i].sala) {
+        //        socket.to(usuarios[i].socketId).emit('posicaoOutroJogador',jogador)
+        //    }
+        //}
+    })
 
 })
 
@@ -156,10 +170,10 @@ exclui_usuario = (idSocket) => {
         return cliente.idSocket === idSocket
     })
 
-    var posicaoAntigoJogador = clienteFilter[0].posicao
-    var salaAntigoJogador = clienteFilter[0].sala
-
     if (clienteFilter.length > 0) {
+        var posicaoAntigoJogador = clienteFilter[0].posicao
+        var salaAntigoJogador = clienteFilter[0].sala
+
         // Alterando quantidade de jogadores na sala
         salas.forEach((sala) => {
             if (sala.nome === salaAntigoJogador) {

@@ -148,12 +148,32 @@ socket.on("candidate", (candidate) => {
     conn.addIceCandidate(new RTCIceCandidate(candidate));
 });
 
+// Envia nova posição para os outros jogadores da sala
+function enviaNovaPosicao() {
+    // enviar meu objeto jogador com a nova posição
+    console.log("entre1")
+    socket.emit('repassaNovaPosicaoServidor', JSON.stringify(usuario))
+}
+
+// Recebe posição de algum jogador da sala
+socket.on('posicaoOutroJogador', data => {
+    console.log("entre2")
+    var j = JSON.parse(data)
+    console.log("outro:",j.px,j.py)
+    for (let i = 0; i < lista_usuarios.length; i++) {
+        if (lista_usuarios[i].sala == j.sala) {
+            if (lista_usuarios[i].nome == j.nome) {
+                lista_usuarios[i].px = j.px
+                lista_usuarios[i].py = j.py
+            }
+        }
+    }
+})
+
 /*------------------- LÓGICA DO JOGO -------------------*/ 
 const vel = 1;
 var tam_peca = 20;
 var qtd_peca = 30;
-var px = Math.floor(Math.random() * (qtd_peca - 1)) + 1; // Posição x do jogador
-var py = Math.floor(Math.random() * (qtd_peca - 1)) + 1; // Posição y do jogador
 var fx = Math.floor(Math.random() * (qtd_peca - 1)) + 1; // Posição x da fruta
 var fy = Math.floor(Math.random() * (qtd_peca - 1)) + 1; // Posição y da fruta
 var pontos = 0
@@ -163,21 +183,23 @@ var cenario = window.document.getElementById('cenario');
 var ctx = cenario.getContext('2d');
 window.document.addEventListener("keydown", movimentar);
 
-setInterval(jogo, 130); // Tempo para chamar a função
+setInterval(jogo, 200); // Tempo para chamar a função
 
 function jogo() {
     
-    if (px<0){ // Chegou no lado esquerdo
-        px = qtd_peca - 1;
+    console.log("EU:", usuario.px,usuario.py)
+
+    if (usuario.px<0){ // Chegou no lado esquerdo
+        usuario.px = qtd_peca - 1;
     }
-    if (px > qtd_peca - 1){ // Chegou no lado direito
-        px = 0;
+    if (usuario.px > qtd_peca - 1){ // Chegou no lado direito
+        usuario.px = 0;
     }
-    if (py < 0){ // Chegou em cima
-        py = qtd_peca - 1;
+    if (usuario.py < 0){ // Chegou em cima
+        usuario.py = qtd_peca - 1;
     }
-    if (py > qtd_peca -1){ // Chegou embaixo
-        py = 0;
+    if (usuario.py > qtd_peca -1){ // Chegou embaixo
+        usuario.py = 0;
     }
 
     // Cenário
@@ -194,11 +216,22 @@ function jogo() {
     } else {
         ctx.fillStyle = "#FE7777"
     }
-    ctx.fillRect(px * tam_peca, py * tam_peca, tam_peca, tam_peca);
+    ctx.fillRect(usuario.px * tam_peca, usuario.py * tam_peca, tam_peca, tam_peca);
     cor = !cor
 
+    // Desenha outros jogadores
+    for (let i = 0; i < lista_usuarios.length; i++) {
+        if (lista_usuarios[i].sala == usuario.sala) {
+            if (lista_usuarios[i].nome != usuario.nome) { 
+                ctx.fillStyle = "yellow"
+                ctx.fillRect(lista_usuarios[i].px * tam_peca, lista_usuarios[i].py * tam_peca, tam_peca, tam_peca);
+                console.log("entrei3",lista_usuarios[i].px,lista_usuarios[i].py)
+            }
+        }
+    } 
+    
     // Reposicionando fruta e somando ponto
-    if (fx == px && fy == py) {
+    if (fx == usuario.px && fy == usuario.py) {
         fx = Math.floor(Math.random() * (qtd_peca - 1)) + 1;
         fy = Math.floor(Math.random() * (qtd_peca - 1)) + 1;
         pontos++
@@ -210,20 +243,28 @@ function movimentar(event) {
 
     switch (event.keyCode) {
         case 37: // Esquerda
-            px += -vel
-            py += 0
+            usuario.px += -vel
+            usuario.py += 0
+            //enviaNovaPosicao(usuario.px,usuario.py)
+            socket.emit('repassaNovaPosicaoServidor', JSON.stringify(usuario))
             break;
         case 39: // Direita
-            px += vel
-            py += 0
+            usuario.px += vel
+            usuario.py += 0
+            //enviaNovaPosicao(usuario.px,usuario.py)
+            socket.emit('repassaNovaPosicaoServidor', JSON.stringify(usuario))
             break;
         case 38: // Cima
-            px += 0
-            py += -vel
+            usuario.px += 0
+            usuario.py += -vel
+            //enviaNovaPosicao(usuario.px,usuario.py)
+            socket.emit('repassaNovaPosicaoServidor', JSON.stringify(usuario))
             break;
         case 40: // Baixo
-            px += 0
-            py += vel
+            usuario.px += 0
+            usuario.py += vel
+            //enviaNovaPosicao(usuario.px,usuario.py)
+            socket.emit('repassaNovaPosicaoServidor', JSON.stringify(usuario))
             break;
         default:
             break;
