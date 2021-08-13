@@ -201,4 +201,6 @@ exclui_usuario = (idSocket) => {
 }
 
 /* Escutando na porta 3000 */
-server.listen(3000);
+server.listen(3000, () => {
+    console.log('> Servidor ativo na porta 3000')
+  })

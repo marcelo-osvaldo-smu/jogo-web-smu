@@ -1,4 +1,5 @@
-var socket = io('http://localhost:3000');
+//var socket = io('http://localhost:3000');
+var socket = io("/",{path: "marcelobn/socket.io"});
 var idSocket = ""
 
 var usuario = {}
@@ -6,9 +7,22 @@ var nome = ""
 var sala = ""
 var primeiro = false
 var lista_usuarios = {}
-var ice_servers = {
+
+/*var ice_servers = {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+};*/
+
+var ice_servers = {
+    iceServers: [
+      { urls: "stun:smu20211.sj.ifsc.edu.br" },
+      {
+        urls: "turn:smu20211.sj.ifsc.edu.br",
+        username: "marcelo.bn",
+        credential: "smu20211"
+      }
+    ],
 };
+
 var localConnection;
 var remoteConnection;
 var midias;
