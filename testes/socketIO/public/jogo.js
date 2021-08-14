@@ -105,22 +105,42 @@ socket.on('autenticacaoCliente', data => {
 
 // Recebendo lista de jogadores ativos
 socket.on('atualizarUsers', data => {
-    console.log(data)
-    var i = 0
+    
     lista_usuarios = data
+    renderizaPlacar(data)
+    /*
     $('#users').empty().trigger("change");
     data.forEach((jogador) => {
         if (jogador.sala == sala) {
             if (jogador.nome != nome) {
-                $('#users').append(new Option(jogador.nome, i));
+                $('#users').append(new Option(jogador.nome+": "+jogador.pontuacao, i));
                 i++;
             } else {
-                $('#users').append(new Option("você", i));
+                $('#users').append(new Option("você: "+jogador.pontuacao, i));
+                i++;
+            }
+        }
+    })*/
+})
+
+// Renderiza o placar
+function renderizaPlacar(data) {
+    console.log("teste")
+    var i = 0
+    $('#users').empty().trigger("change");
+    data.forEach((jogador) => {
+        if (jogador.sala == sala) {
+            if (jogador.nome != nome) {
+                $('#users').append(new Option(jogador.nome+": "+jogador.pontuacao, i));
+                i++;
+            } else {
+                $('#users').append(new Option("você: "+jogador.pontuacao, i));
                 i++;
             }
         }
     })
-})
+    return true
+}
 
 // Recebendo resposta de desconexão
 socket.on('disconnectCliente', data => {
@@ -163,7 +183,6 @@ socket.on("candidate", (candidate) => {
 // Envia nova posição para os outros jogadores da sala
 function enviaNovaPosicao() {
     // enviar meu objeto jogador com a nova posição
-    console.log("entre1")
     socket.emit('repassaNovaPosicaoServidor', JSON.stringify(usuario))
 }
 
@@ -206,7 +225,7 @@ setInterval(jogo, 200); // Tempo para chamar a função
 
 function jogo() {
     
-    console.log("EU:", usuario.px,usuario.py)
+    //console.log("EU:", usuario.px,usuario.py)
 
     if (usuario.px<0){ // Chegou no lado esquerdo
         usuario.px = qtd_peca - 1;
@@ -244,13 +263,15 @@ function jogo() {
             if (lista_usuarios[i].nome != usuario.nome) { 
                 ctx.fillStyle = "yellow"
                 ctx.fillRect(lista_usuarios[i].px * tam_peca, lista_usuarios[i].py * tam_peca, tam_peca, tam_peca);
-                console.log("entrei3",lista_usuarios[i].px,lista_usuarios[i].py)
+                //console.log("entrei3",lista_usuarios[i].px,lista_usuarios[i].py)
             }
         }
     } 
     
     // Reposicionando fruta e somando ponto
     if (fx == usuario.px && fy == usuario.py) {
+        console.log("fruta")
+        socket.emit('repassaNovaPosicaoServidor', JSON.stringify(usuario))
         socket.emit("reposicionaFruta", JSON.stringify(usuario))
     }
 

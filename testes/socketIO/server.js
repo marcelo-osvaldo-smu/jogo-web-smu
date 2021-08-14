@@ -114,23 +114,28 @@ io.on('connection', socket => {
 
     // Repassa posição para todos os jogadores de uma mesma sala
     socket.on("repassaNovaPosicaoServidor", (jogador) => {
-        var jog = JSON.parse(jogador)
         io.sockets.emit('posicaoOutroJogador', jogador);
     })
 
     // Quando algum jogador marca ponto
     socket.on("reposicionaFruta", (jogador) => {
         var jog = JSON.parse(jogador)
+        var user = {}
 
         // Altera pontuação do jogador
-        usuarios.forEach((u) => {
-            if (u.nome === jog.nome) {
-                u.pontuacao += 5
+        for (let i = 0; i < usuarios.length; i++ ) {
+            if (usuarios[i].nome == jog.nome) {
+                usuarios[i].pontuacao += 5 
+                usuarios[i].px = jog.px
+                usuarios[i].py = jog.py
+                user = usuarios[i]
             }
-        })
+        }
 
         // Envia para todos a lista de jogadores atualizada
         io.sockets.emit('atualizarUsers', usuarios);
+        //io.sockets.emit('posicaoOutroJogador', JSON.stringify(user));
+        
 
         // Manda nova posição da fruta através da lista de salas
         salas.forEach((s) => {
