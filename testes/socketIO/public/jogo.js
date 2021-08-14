@@ -4,6 +4,8 @@ var idSocket = ""
 var usuario = {}
 var nome = ""
 var sala = ""
+var salas = {}
+var fx = fy = 0
 var primeiro = false
 var lista_usuarios = {}
 var ice_servers = {
@@ -24,6 +26,13 @@ socket.on('connect', function () {
 // Rebendo salas disponíveis
 socket.on('salasDisponiveis', data => {
     var salasJSON = JSON.parse(data)
+    salas = salasJSON
+    for (let i = 0; i < salas.length; i++) {
+        if (salas[i].nome == sala) {
+            fx = salas[i].fx
+            fy = salas[i].fy
+        }
+    }
     nome = window.prompt('Qual o seu nome?');
     sala = window.prompt('Salas disponíveis:\n'+'Nome: '+salasJSON[0].nome+', Jogadores: '+salasJSON[0].qtd+'/'+salasJSON[0].max
                         +'\nNome: '+salasJSON[1].nome+', Jogadores: '+salasJSON[1].qtd+'/'+salasJSON[1].max
@@ -105,6 +114,9 @@ socket.on('atualizarUsers', data => {
             if (jogador.nome != nome) {
                 $('#users').append(new Option(jogador.nome, i));
                 i++;
+            } else {
+                $('#users').append(new Option("você", i));
+                i++;
             }
         }
     })
@@ -157,9 +169,7 @@ function enviaNovaPosicao() {
 
 // Recebe posição de algum jogador da sala
 socket.on('posicaoOutroJogador', data => {
-    console.log("entre2")
     var j = JSON.parse(data)
-    console.log("outro:",j.px,j.py)
     for (let i = 0; i < lista_usuarios.length; i++) {
         if (lista_usuarios[i].sala == j.sala) {
             if (lista_usuarios[i].nome == j.nome) {
@@ -170,12 +180,21 @@ socket.on('posicaoOutroJogador', data => {
     }
 })
 
+// Reposiciona fruta
+socket.on('novaPosicaoFruta', data =>{
+    salas = JSON.parse(data)
+    for (let i = 0; i < salas.length; i++) {
+        if (salas[i].nome == sala) {
+            fx = salas[i].fx
+            fy = salas[i].fy
+        }
+    }
+})
+
 /*------------------- LÓGICA DO JOGO -------------------*/ 
 const vel = 1;
 var tam_peca = 20;
 var qtd_peca = 30;
-var fx = Math.floor(Math.random() * (qtd_peca - 1)) + 1; // Posição x da fruta
-var fy = Math.floor(Math.random() * (qtd_peca - 1)) + 1; // Posição y da fruta
 var pontos = 0
 var cor = true
 
@@ -232,9 +251,7 @@ function jogo() {
     
     // Reposicionando fruta e somando ponto
     if (fx == usuario.px && fy == usuario.py) {
-        fx = Math.floor(Math.random() * (qtd_peca - 1)) + 1;
-        fy = Math.floor(Math.random() * (qtd_peca - 1)) + 1;
-        pontos++
+        socket.emit("reposicionaFruta", JSON.stringify(usuario))
     }
 
 }

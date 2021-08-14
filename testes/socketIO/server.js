@@ -17,13 +17,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Lista de usários ativos
 var usuarios = []
 // Lista de salas disponíveis
-var salas = [{ nome: "a", qtd: 0, max: 3 }, { nome: "b", qtd: 0, max: 5 }, { nome: "c", qtd: 0, max: 5 }]
+var salas = [{ nome: "a", qtd: 0, max: 3 , fx: 50, fy: 50}, { nome: "b", qtd: 0, max: 5, fx: 50, fy: 50 }, { nome: "c", qtd: 0, max: 5, fx: 50, fy: 50 }]
 // Quantidade de peça tabuleiro (gambiarra)
 var qtd_peca = 30;
 
 io.on('connection', socket => {
-    //console.log("novo cliente")
+
+    // Enviando informações da sala
     socket.emit('salasDisponiveis',JSON.stringify(salas))
+
     // Processo de autenticação
     socket.on('autenticacaoServidor', data => {
         var req = data.split(":")
@@ -40,6 +42,7 @@ io.on('connection', socket => {
                 cliente.idSocket = socket.id
                 cliente.sala = sala
                 cliente.codigo = verificaNome
+                cliente.pontuacao = 0
                 cliente.px = Math.floor(Math.random() * (qtd_peca - 1)) + 1; // Posição x do jogador
                 cliente.py = Math.floor(Math.random() * (qtd_peca - 1)) + 1; // Posição y do jogador
 
@@ -109,17 +112,38 @@ io.on('connection', socket => {
         socket.to(socketId).emit("candidate", signal);
     });
 
-    // Repassa posição para todos os jogadores de uma mas sala
+    // Repassa posição para todos os jogadores de uma mesma sala
     socket.on("repassaNovaPosicaoServidor", (jogador) => {
         var jog = JSON.parse(jogador)
-        console.log(jog)
         io.sockets.emit('posicaoOutroJogador', jogador);
-        //for (let i = 0; i < usuarios.length; i++) {
-        //    if (jog.sala == usuarios[i].sala) {
-        //        socket.to(usuarios[i].socketId).emit('posicaoOutroJogador',jogador)
-        //    }
-        //}
     })
+
+    // Quando algum jogador marca ponto
+    socket.on("reposicionaFruta", (jogador) => {
+        var jog = JSON.parse(jogador)
+
+        // Altera pontuação do jogador
+        usuarios.forEach((u) => {
+            if (u.nome === jog.nome) {
+                u.pontuacao += 5
+            }
+        })
+
+        // Envia para todos a lista de jogadores atualizada
+        io.sockets.emit('atualizarUsers', usuarios);
+
+        // Manda nova posição da fruta através da lista de salas
+        salas.forEach((s) => {
+            if (s.nome === jog.sala) {
+                s.fx = Math.floor(Math.random() * (qtd_peca - 1)) + 1;
+                s.fy = Math.floor(Math.random() * (qtd_peca - 1)) + 1;
+            }
+        })
+
+        io.sockets.emit('novaPosicaoFruta',JSON.stringify(salas))
+
+    })
+
 
 })
 
@@ -201,4 +225,6 @@ exclui_usuario = (idSocket) => {
 }
 
 /* Escutando na porta 3000 */
-server.listen(3000);
+server.listen(3000, () => {
+    console.log("> Servidor ativo na porta 3000")
+});
