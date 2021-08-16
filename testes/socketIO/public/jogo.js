@@ -1,7 +1,7 @@
-var socket = io('http://localhost:3000');
-var socket = io("/",{path: "marcelobn/socket.io"});
+//var socket = io('http://localhost:3000');
+var socket = io("/",{path: "/marcelo.bn/socket.io"});
 var idSocket = ""
-// branch 2
+
 var usuario = {}
 var nome = ""
 var sala = ""
