@@ -1,5 +1,5 @@
-//var socket = io('http://localhost:3000');
-var socket = io("/",{path: "/marcelo.bn/socket.io"});
+var socket = io('http://localhost:3000');
+//var socket = io("/",{path: "/marcelo.bn/socket.io"});
 var idSocket = ""
 
 var usuario = {}
@@ -9,20 +9,22 @@ var salas = {}
 var fx = fy = 0
 var primeiro = false
 var lista_usuarios = {}
-/*var ice_servers = {
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-};*/
 
 var ice_servers = {
-    iceServers: [
-      { urls: "stun:smu20211.sj.ifsc.edu.br" },
-      {
-        urls: "turn:smu20211.sj.ifsc.edu.br",
-        username: "marcelo.bn",
-        credential: "smu20211"
-      }
-    ],
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
+
+// var ice_servers = {
+//     iceServers: [
+//       { urls: "stun:smu20211.sj.ifsc.edu.br" },
+//       {
+//         urls: "turn:smu20211.sj.ifsc.edu.br",
+//         username: "marcelo.bn",
+//         credential: "smu20211"
+//       }
+//     ],
+// };
+
 var localConnection;
 var remoteConnection;
 var midias;
@@ -117,46 +119,28 @@ socket.on('autenticacaoCliente', data => {
 
 // Recebendo lista de jogadores ativos
 socket.on('atualizarUsers', data => {
-    
+    console.log(data)
     lista_usuarios = data
     renderizaPlacar(data)
-    /*
-    $('#users').empty().trigger("change");
-    data.forEach((jogador) => {
-        if (jogador.sala == sala) {
-            if (jogador.nome != nome) {
-                $('#users').append(new Option(jogador.nome+": "+jogador.pontuacao, i));
-                i++;
-            } else {
-                $('#users').append(new Option("você: "+jogador.pontuacao, i));
-                i++;
-            }
-        }
-    })*/
 })
 
 // Renderiza o placar
 function renderizaPlacar(data) {
-    console.log("teste")
-    var i = 0
     $('#users').empty().trigger("change");
-    data.forEach((jogador) => {
-        if (jogador.sala == sala) {
-            if (jogador.nome != nome) {
-                $('#users').append(new Option(jogador.nome+": "+jogador.pontuacao, i));
-                i++;
+    for (let i = 0; i < data.length; i++) {
+        if (data[i].sala == sala) {
+            if (data[i].nome != nome) {
+                $('#users').append(new Option(data[i].nome+": "+data[i].pontuacao, i));
             } else {
-                $('#users').append(new Option("você: "+jogador.pontuacao, i));
-                i++;
+                $('#users').append(new Option("você: "+data[i].pontuacao, i));
             }
         }
-    })
+    }
     return true
 }
 
 // Recebendo resposta de desconexão
 socket.on('disconnectCliente', data => {
-    console.log(data)
     socket.disconnect()
 })
 
@@ -194,7 +178,6 @@ socket.on("candidate", (candidate) => {
 
 // Envia nova posição para os outros jogadores da sala
 function enviaNovaPosicao() {
-    // enviar meu objeto jogador com a nova posição
     socket.emit('repassaNovaPosicaoServidor', JSON.stringify(usuario))
 }
 

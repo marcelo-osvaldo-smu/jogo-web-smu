@@ -19,6 +19,10 @@ var jogadores_a = []
 var jogadores_b = []
 var jogadores_c = []
 
+var sockets_a = []
+var sockets_b = []
+var sockets_c = []
+
 // Lista de usários ativos
 var usuarios = []
 // Lista de salas disponíveis
@@ -61,17 +65,23 @@ io.on('connection', socket => {
                 // Lista de jogadores por sala
                 if (sala==="a") {
                     jogadores_a.push(cliente)
+                    sockets_a.push(socket.id)
+                    for (let i = 0; i < sockets_a.length; i++) {
+                        io.to(sockets_a[i]).emit("atualizarUsers", jogadores_a);
+                    }
                 } else if (sala==="b") {
                     jogadores_b.push(cliente)
+                    sockets_b.push(socket.id)
                 } else {
                     jogadores_c.push(cliente)
+                    sockets_c.push(socket.id)
                 }
 
-                usuarios.push(cliente)
+                // Incrementa jogadores na sala
                 adiciona_usuario_sala(cliente.sala)
 
                 // Broadcast de lista de novos usuários 
-                io.emit('atualizarUsers', usuarios);
+                //io.emit('atualizarUsers', usuarios);
 
                 // Finalizando registro cliente
                 socket.emit('autenticacaoCliente', JSON.stringify(cliente))
@@ -126,30 +136,29 @@ io.on('connection', socket => {
 
     // Repassa posição para todos os jogadores de uma mesma sala
     socket.on("repassaNovaPosicaoServidor", (jogador) => {
-        io.sockets.emit('posicaoOutroJogador', jogador);
+        //io.sockets.emit('posicaoOutroJogador', jogador);
+        
+        var jog = JSON.parse(jogador)
+        
+        if (jog.sala=="a") {
+            for (let i = 0; i < sockets_a.length; i++) {
+                socket.to(sockets_a[i]).emit("posicaoOutroJogador", jogador);
+            }
+        } else if (jog.sala=="b") {
+            for (let i = 0; i < sockets_b.length; i++) {
+                socket.to(sockets_b[i]).emit("posicaoOutroJogador", jogador);
+            }
+        } else {
+            for (let i = 0; i < sockets_c.length; i++) {
+                socket.to(sockets_c[i]).emit("posicaoOutroJogador", jogador);
+            }
+        }
     })
 
     // Quando algum jogador marca ponto
     socket.on("reposicionaFruta", (jogador) => {
         var jog = JSON.parse(jogador)
-        var user = {}
-
-        // Altera pontuação do jogador
-        for (let i = 0; i < usuarios.length; i++ ) {
-            if (usuarios[i].nome == jog.nome) {
-                usuarios[i].pontuacao += 5 
-                usuarios[i].px = jog.px
-                usuarios[i].py = jog.py
-                user = usuarios[i]
-            }
-        }
-
-        // Envia para todos a lista de jogadores atualizada
-        io.sockets.emit('atualizarUsers', usuarios);
-        //io.sockets.emit('posicaoOutroJogador', JSON.stringify(user));
         
-
-        // Manda nova posição da fruta através da lista de salas
         salas.forEach((s) => {
             if (s.nome === jog.sala) {
                 s.fx = Math.floor(Math.random() * (qtd_peca - 1)) + 1;
@@ -157,7 +166,53 @@ io.on('connection', socket => {
             }
         })
 
-        io.sockets.emit('novaPosicaoFruta',JSON.stringify(salas))
+        // Selecionando a sala
+        if (jog.sala=="a") {
+            for (let i = 0; i < jogadores_a.length; i++ ) {
+                if (jogadores_a[i].nome == jog.nome) {
+                    jogadores_a[i].pontuacao += 5 
+                    jogadores_a[i].px = jog.px
+                    jogadores_a[i].py = jog.py
+                }
+            }
+            for (let i = 0; i < sockets_a.length; i++) {
+                io.to(sockets_a[i]).emit("atualizaUsers", JSON.stringify(jogadores_a));
+                io.to(sockets_a[i]).emit('novaPosicaoFruta',JSON.stringify(salas));
+            }
+        } else if (jog.sala=="b") {
+            for (let i = 0; i < jogadores_b.length; i++ ) {
+                if (jogadores_b[i].nome == jog.nome) {
+                    jogadores_b[i].pontuacao += 5 
+                    jogadores_b[i].px = jog.px
+                    jogadores_b[i].py = jog.py
+                }
+            }
+        } else {
+            for (let i = 0; i < jogadores_c.length; i++ ) {
+                if (jogadores_c[i].nome == jog.nome) {
+                    jogadores_c[i].pontuacao += 5 
+                    jogadores_c[i].px = jog.px
+                    jogadores_c[i].py = jog.py
+                }
+            }
+        }
+
+        
+
+        // Envia para todos a lista de jogadores atualizada
+        //io.sockets.emit('atualizarUsers', usuarios);
+        //io.sockets.emit('posicaoOutroJogador', JSON.stringify(user));
+        
+
+        // Manda nova posição da fruta através da lista de salas
+        // salas.forEach((s) => {
+        //     if (s.nome === jog.sala) {
+        //         s.fx = Math.floor(Math.random() * (qtd_peca - 1)) + 1;
+        //         s.fy = Math.floor(Math.random() * (qtd_peca - 1)) + 1;
+        //     }
+        // })
+
+        //io.sockets.emit('novaPosicaoFruta',JSON.stringify(salas))
 
     })
 
