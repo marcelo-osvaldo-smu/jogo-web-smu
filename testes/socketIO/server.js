@@ -14,6 +14,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 //    res.send("Hello!")
 //})
 
+// Lista de usários ativos por sala
+var jogadores_a = []
+var jogadores_b = []
+var jogadores_c = []
+
 // Lista de usários ativos
 var usuarios = []
 // Lista de salas disponíveis
@@ -52,6 +57,16 @@ io.on('connection', socket => {
                         cliente.posicao = s.qtd + 1
                     }
                 })
+
+                // Lista de jogadores por sala
+                if (sala==="a") {
+                    jogadores_a.push(cliente)
+                } else if (sala==="b") {
+                    jogadores_b.push(cliente)
+                } else {
+                    jogadores_c.push(cliente)
+                }
+
                 usuarios.push(cliente)
                 adiciona_usuario_sala(cliente.sala)
 
@@ -91,9 +106,6 @@ io.on('connection', socket => {
     // Socket desconectado forçado
     socket.on('disconnect', () => {
         exclui_usuario(socket.id)
-        // Aqui vamos alterar a posição de cada jogador quando alguém sai da sala
-
-        // Envia para todos a lista de nomes atualizada
         io.sockets.emit('atualizarUsers', usuarios);
     })
 
