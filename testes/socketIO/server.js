@@ -23,10 +23,12 @@ var sockets_a = []
 var sockets_b = []
 var sockets_c = []
 
-// Lista de usários ativos
+// Lista de todos os usários de todas as salas
 var usuarios = []
+
 // Lista de salas disponíveis
 var salas = [{ nome: "a", qtd: 0, max: 3 , fx: 50, fy: 50}, { nome: "b", qtd: 0, max: 5, fx: 50, fy: 50 }, { nome: "c", qtd: 0, max: 5, fx: 50, fy: 50 }]
+
 // Quantidade de peça tabuleiro 
 var qtd_peca = 30;
 
@@ -76,6 +78,9 @@ io.on('connection', socket => {
                     jogadores_c.push(cliente)
                     sockets_c.push(socket.id)
                 }
+                
+                // Adicionando usuário na lista geral
+                usuarios.push(cliente)
 
                 // Incrementa jogadores na sala
                 adiciona_usuario_sala(cliente.sala)
@@ -103,17 +108,31 @@ io.on('connection', socket => {
         }
     })
 
-    // Processo de desconexão
+    // Processo de desconexão (atualizado para trabalhar com salas)
     socket.on('disconnectServidor', data => {
         var req = data.split(":")
         socket.emit('disconnectCliente', "ok:202")
         exclui_usuario(req[1])
     })
 
-    // Socket desconectado forçado
+    // Socket desconectado forçado (atualizado para trabalhar com salas)
     socket.on('disconnect', () => {
-        exclui_usuario(socket.id)
-        io.sockets.emit('atualizarUsers', usuarios);
+        var ret = exclui_usuario(socket.id)
+        if (ret=="a") {
+            for (let i = 0; i < sockets_a.length; i++) {
+                io.to(sockets_a[i]).emit("atualizarUsers", jogadores_a);
+            }
+        } else if (ret=="b") {
+            for (let i = 0; i < sockets_b.length; i++) {
+                io.to(sockets_b[i]).emit("atualizarUsers", jogadores_b);
+            }
+        } else if (ret=="c") {
+            for (let i = 0; i < sockets_c.length; i++) {
+                io.to(sockets_c[i]).emit("atualizarUsers", jogadores_c);
+            }
+        } else {
+            console.log(ret)
+        }
     })
 
     // Sinalização de áudio: oferta
@@ -252,6 +271,12 @@ exclui_usuario = (idSocket) => {
     })
 
     if (clienteFilter.length > 0) {
+
+        // Selecionando a sala do cliente
+        const salaFilter = salas.filter((sala) => {
+            return sala.nome === clienteFilter.sala
+        })
+
         var posicaoAntigoJogador = clienteFilter[0].posicao
         var salaAntigoJogador = clienteFilter[0].sala
 
@@ -263,11 +288,11 @@ exclui_usuario = (idSocket) => {
             }
         })
 
-        // Removendo usuário
+        // Removendo usuário da lista Geral
         var index = usuarios.findIndex(cliente => cliente.idSocket === idSocket)
         usuarios.splice(index, 1)
 
-        // Alterando posição dos jogadores na sala
+        // Alterando posição dos jogadores na sala da lista geral de usuários
         usuarios.forEach((u) => {
             if (u.sala === salaAntigoJogador) {
                 if (u.posicao > posicaoAntigoJogador) { // Apenas posições acimas são alteradas
@@ -275,10 +300,41 @@ exclui_usuario = (idSocket) => {
                 }
             }
         })
-        
+
+        // Atualizando lista de jogadores da sala específica
+        if (salaAntigoJogador=="a") {
+            jogadores_a = []
+            sockets_a = []
+            for (let i=0;i<usuarios.length;i++) {
+                if (usuarios[i].sala=="a") {
+                    jogadores_a.push(usuarios[i])
+                    sockets_a.push(usuarios[i].idSocket)
+                }
+            }
+        } else if (salaAntigoJogador=="b") {
+            jogadores_b = []
+            sockets_b = []
+            for (let i=0;i<usuarios.length;i++) {
+                if (usuarios[i].sala=="b") {
+                    jogadores_b.push(usuarios[i])
+                    sockets_b.push(usuarios[i].idSocket)
+                }
+            }
+        } else {
+            jogadores_c = []
+            sockets_c = []
+            for (let i=0;i<usuarios.length;i++) {
+                if (usuarios[i].sala=="c") {
+                    jogadores_c.push(usuarios[i])
+                    sockets_c.push(usuarios[i].idSocket)
+                }
+            }
+        }
+
+        return salaAntigoJogador
     }
 
-    return true
+    return "erro"
 }
 
 /* Escutando na porta 3000 */

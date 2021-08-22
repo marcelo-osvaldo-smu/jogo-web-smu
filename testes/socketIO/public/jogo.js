@@ -265,7 +265,6 @@ function jogo() {
     
     // Reposicionando fruta e somando ponto
     if (fx == usuario.px && fy == usuario.py) {
-        console.log("fruta")
         socket.emit('repassaNovaPosicaoServidor', JSON.stringify(usuario))
         socket.emit("reposicionaFruta", JSON.stringify(usuario))
     }
